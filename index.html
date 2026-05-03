@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>今日のめざまし占い</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Hiragino Kame Gothic ProN', 'Hiragino Sans', 'Meiryo', sans-serif;
+      background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+      min-height: 100vh;
+      color: #fff;
+      padding: 20px;
+    }
+
+    header {
+      text-align: center;
+      padding: 30px 0 20px;
+    }
+
+    header h1 {
+      font-size: 2rem;
+      letter-spacing: 0.1em;
+      text-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
+      color: #ffd700;
+    }
+
+    header p {
+      margin-top: 8px;
+      font-size: 1rem;
+      color: #ccc;
+      letter-spacing: 0.05em;
+    }
+
+    .top3 {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      margin: 30px auto;
+      max-width: 700px;
+      flex-wrap: wrap;
+    }
+
+    .top3-card {
+      background: rgba(255,255,255,0.08);
+      border-radius: 16px;
+      padding: 20px 24px;
+      text-align: center;
+      flex: 1;
+      min-width: 160px;
+      border: 1px solid rgba(255,215,0,0.3);
+      backdrop-filter: blur(6px);
+    }
+
+    .top3-card.rank1 { border-color: #ffd700; background: rgba(255,215,0,0.12); }
+    .top3-card.rank2 { border-color: #c0c0c0; background: rgba(192,192,192,0.1); }
+    .top3-card.rank3 { border-color: #cd7f32; background: rgba(205,127,50,0.1); }
+
+    .top3-card .medal { font-size: 2rem; }
+    .top3-card .sign-emoji { font-size: 2.5rem; margin: 8px 0; }
+    .top3-card .sign-name { font-size: 1.1rem; font-weight: bold; }
+    .top3-card .sign-date { font-size: 0.75rem; color: #aaa; margin-top: 4px; }
+
+    h2.section-title {
+      text-align: center;
+      font-size: 1.1rem;
+      color: #aaa;
+      margin: 10px 0 20px;
+      letter-spacing: 0.1em;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+      max-width: 900px;
+      margin: 0 auto 40px;
+    }
+
+    .card {
+      background: rgba(255,255,255,0.06);
+      border-radius: 14px;
+      padding: 18px;
+      border: 1px solid rgba(255,255,255,0.1);
+      backdrop-filter: blur(4px);
+      transition: transform 0.2s;
+    }
+
+    .card:hover { transform: translateY(-3px); }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .card-header .emoji { font-size: 2rem; }
+
+    .card-header .info .name { font-size: 1.1rem; font-weight: bold; }
+    .card-header .info .date { font-size: 0.75rem; color: #aaa; }
+
+    .rank-badge {
+      margin-left: auto;
+      font-size: 1.4rem;
+      font-weight: bold;
+      min-width: 36px;
+      text-align: right;
+    }
+    .rank-badge.top { color: #ffd700; }
+    .rank-badge.mid { color: #aaa; }
+    .rank-badge.low { color: #888; }
+
+    .stars {
+      font-size: 1rem;
+      margin-bottom: 10px;
+      color: #ffd700;
+    }
+
+    .message {
+      font-size: 0.9rem;
+      line-height: 1.6;
+      color: #ddd;
+      margin-bottom: 12px;
+    }
+
+    .lucky-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .lucky-tag {
+      font-size: 0.75rem;
+      background: rgba(255,255,255,0.1);
+      border-radius: 20px;
+      padding: 3px 10px;
+      color: #ccc;
+    }
+
+    .lucky-tag span { color: #fff; font-weight: bold; }
+
+    footer {
+      text-align: center;
+      color: #555;
+      font-size: 0.75rem;
+      padding: 20px 0;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>&#10024; めざまし占い &#10024;</h1>
+  <p id="today-date"></p>
+</header>
+
+<div class="top3" id="top3"></div>
+<h2 class="section-title">&#9734; 全星座の運勢 &#9734;</h2>
+<div class="grid" id="grid"></div>
+
+<footer>※ このページの占いはエンターテインメントです</footer>
+
+<script>
+  const SIGNS = [
+    { name: 'おひつじ座', emoji: '♈', date: '3/21〜4/19' },
+    { name: 'おうし座',   emoji: '♉', date: '4/20〜5/20' },
+    { name: 'ふたご座',   emoji: '♊', date: '5/21〜6/21' },
+    { name: 'かに座',     emoji: '♋', date: '6/22〜7/22' },
+    { name: 'しし座',     emoji: '♌', date: '7/23〜8/22' },
+    { name: 'おとめ座',   emoji: '♍', date: '8/23〜9/22' },
+    { name: 'てんびん座', emoji: '♎', date: '9/23〜10/23' },
+    { name: 'さそり座',   emoji: '♏', date: '10/24〜11/22' },
+    { name: 'いて座',     emoji: '♐', date: '11/23〜12/21' },
+    { name: 'やぎ座',     emoji: '♑', date: '12/22〜1/19' },
+    { name: 'みずがめ座', emoji: '♒', date: '1/20〜2/18' },
+    { name: 'うお座',     emoji: '♓', date: '2/19〜3/20' },
+  ];
+
+  const MESSAGES = [
+    '今日は積極的に動くと吉。思い切った一歩が新しい扉を開きます。',
+    '人との縁が運を引き寄せる日。笑顔で挨拶するだけで流れが変わります。',
+    'じっくり取り組んだことが実を結ぶ兆し。焦らず丁寧に進めましょう。',
+    '直感が冴えている日。ひらめいたことはメモしておくと後で役立ちます。',
+    '午後から運気が上昇。午前中は準備に徹すると午後に成果が出やすいです。',
+    '思いやりのある言葉が周囲を和ませます。自分も穏やかな気持ちで過ごせそう。',
+    '新しいことに挑戦するのに最適な日。小さなチャレンジから始めてみましょう。',
+    '過去の努力が今日の形になって現れる日。自信を持って臨んでください。',
+    'リラックスできる時間を大切に。心の余裕が良い判断につながります。',
+    '人の話をよく聞くことで大切なヒントを得られそう。傾聴がキーワードです。',
+    '創造性が高まっている日。アイデアを形にするなら今がチャンスです。',
+    '身近なところに幸運が潜んでいます。いつもと違う道を歩いてみましょう。',
+  ];
+
+  const COLORS = ['ゴールド', 'ラベンダー', 'スカイブルー', 'ローズピンク', 'ミントグリーン',
+                  'コーラル', 'アイボリー', 'ネイビー', 'テラコッタ', 'シルバー', 'オリーブ', 'ベリー'];
+
+  const ITEMS = ['手帳', 'ハンカチ', 'お気に入りのペン', 'コーヒー', '観葉植物', 'アクセサリー',
+                 '音楽', '本', 'お守り', '花', '写真', 'マグカップ'];
+
+  const NUMBERS = [1,2,3,4,5,6,7,8,9,11,22,33];
+
+  // 日付ベースのシード乱数
+  function seededRandom(seed) {
+    let s = seed;
+    return function() {
+      s = (s * 1664525 + 1013904223) & 0xffffffff;
+      return (s >>> 0) / 0xffffffff;
+    };
+  }
+
+  function getTodayString() {
+    const d = new Date();
+    return `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
+  }
+
+  function getStars(rank) {
+    if (rank <= 2) return '★★★★★';
+    if (rank <= 4) return '★★★★☆';
+    if (rank <= 7) return '★★★☆☆';
+    if (rank <= 10) return '★★☆☆☆';
+    return '★☆☆☆☆';
+  }
+
+  function getRankLabel(rank) {
+    if (rank === 1) return '🥇 1位';
+    if (rank === 2) return '🥈 2位';
+    if (rank === 3) return '🥉 3位';
+    return `${rank}位`;
+  }
+
+  function getRankClass(rank) {
+    if (rank <= 3) return 'top';
+    if (rank <= 8) return 'mid';
+    return 'low';
+  }
+
+  // 今日の日付表示
+  const today = new Date();
+  const weekdays = ['日', '月', '火', '水', '木', '金', '土'];
+  document.getElementById('today-date').textContent =
+    `${today.getFullYear()}年${today.getMonth()+1}月${today.getDate()}日（${weekdays[today.getDay()]}）の運勢`;
+
+  // シード初期化
+  const seed = parseInt(getTodayString(), 10);
+  const rand = seededRandom(seed);
+
+  // ランキングをシャッフル
+  const ranking = [...Array(12).keys()]; // 0〜11
+  for (let i = ranking.length - 1; i > 0; i--) {
+    const j = Math.floor(rand() * (i + 1));
+    [ranking[i], ranking[j]] = [ranking[j], ranking[i]];
+  }
+
+  // メッセージ・ラッキーアイテムをシャッフル
+  const msgOrder = [...Array(12).keys()];
+  for (let i = msgOrder.length - 1; i > 0; i--) {
+    const j = Math.floor(rand() * (i + 1));
+    [msgOrder[i], msgOrder[j]] = [msgOrder[j], msgOrder[i]];
+  }
+
+  const colorOrder = [...Array(12).keys()];
+  for (let i = colorOrder.length - 1; i > 0; i--) {
+    const j = Math.floor(rand() * (i + 1));
+    [colorOrder[i], colorOrder[j]] = [colorOrder[j], colorOrder[i]];
+  }
+
+  const itemOrder = [...Array(12).keys()];
+  for (let i = itemOrder.length - 1; i > 0; i--) {
+    const j = Math.floor(rand() * (i + 1));
+    [itemOrder[i], itemOrder[j]] = [itemOrder[j], itemOrder[i]];
+  }
+
+  const numOrder = [...Array(12).keys()];
+  for (let i = numOrder.length - 1; i > 0; i--) {
+    const j = Math.floor(rand() * (i + 1));
+    [numOrder[i], numOrder[j]] = [numOrder[j], numOrder[i]];
+  }
+
+  // データ構築: rankingのインデックスがrank-1、値がSIGNSのインデックス
+  // ranking[0] = 1位の星座インデックス
+  const signData = SIGNS.map((sign, i) => {
+    const rank = ranking.indexOf(i) + 1;
+    return {
+      ...sign,
+      rank,
+      stars: getStars(rank),
+      message: MESSAGES[msgOrder[i]],
+      color: COLORS[colorOrder[i]],
+      item: ITEMS[itemOrder[i]],
+      number: NUMBERS[numOrder[i]],
+    };
+  });
+
+  // TOP3
+  const top3El = document.getElementById('top3');
+  const medals = ['rank1', 'rank2', 'rank3'];
+  const medalEmoji = ['🥇', '🥈', '🥉'];
+  [1, 2, 3].forEach((rank, idx) => {
+    const s = signData.find(d => d.rank === rank);
+    top3El.innerHTML += `
+      <div class="top3-card ${medals[idx]}">
+        <div class="medal">${medalEmoji[idx]}</div>
+        <div class="sign-emoji">${s.emoji}</div>
+        <div class="sign-name">${s.name}</div>
+        <div class="sign-date">${s.date}</div>
+      </div>`;
+  });
+
+  // グリッド（ランク順）
+  const sorted = [...signData].sort((a, b) => a.rank - b.rank);
+  const gridEl = document.getElementById('grid');
+  sorted.forEach(s => {
+    gridEl.innerHTML += `
+      <div class="card">
+        <div class="card-header">
+          <span class="emoji">${s.emoji}</span>
+          <div class="info">
+            <div class="name">${s.name}</div>
+            <div class="date">${s.date}</div>
+          </div>
+          <div class="rank-badge ${getRankClass(s.rank)}">${getRankLabel(s.rank)}</div>
+        </div>
+        <div class="stars">${s.stars}</div>
+        <div class="message">${s.message}</div>
+        <div class="lucky-row">
+          <span class="lucky-tag">🎨 <span>${s.color}</span></span>
+          <span class="lucky-tag">🍀 <span>${s.item}</span></span>
+          <span class="lucky-tag">🔢 <span>${s.number}</span></span>
+        </div>
+      </div>`;
+  });
+</script>
+
+</body>
+</html>
