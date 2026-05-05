@@ -1,9 +1,10 @@
 name: Daily Quote
 
 on:
-  schedule:
-    - cron: '15 23 * * *'  # 毎朝8:15 JST (= 前日23:15 UTC)
-  workflow_dispatch:       # 手動実行ボタン（テスト用）
+  # cron-job.org に一本化したためスケジュール実行を無効化
+  # schedule:
+  #   - cron: '15 23 * * *'  # 毎朝8:15 JST (= 前日23:15 UTC)
+  workflow_dispatch:       # cron-job.org から毎朝8:15 JSTに実行
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
